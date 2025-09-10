@@ -8,48 +8,65 @@ using System.Windows.Forms;
 namespace HostConnectionTestor
 {
    
-        public partial class MainForm : Form
+    public partial class MainForm : Form
+    {
+        private TcpListener listener;
+        private const int Port = 5000;
+        private Label statusLabel;
+        TcpClient client;
+
+        public MainForm()
         {
-            private TcpListener listener;
-            private const int Port = 5000;
-            private Label statusLabel;
+            InitializeComponent();
+            InitializeStatusLabel();
+            StartListening();
+            Reset();
+        }
 
-            public MainForm()
+        private void InitializeStatusLabel()
+        {
+            statusLabel = new()
             {
-                InitializeComponent();
-                InitializeStatusLabel();
-                StartListening();
-            }
+                AutoSize = true,
+                Location = new System.Drawing.Point(20, 20),
+                Text = "Waiting for connection..."
+            };
 
-            private void InitializeStatusLabel()
+            this.Controls.Add(statusLabel);
+        }
+
+        private async void StartListening()
+        {
+            listener = new TcpListener(IPAddress.Loopback, Port);
+            listener.Start();
+            statusLabel.Text = $"Listening on port {Port}...";
+
+               
+            client = await listener.AcceptTcpClientAsync();
+            ShowConnectionMessage();
+                
+        }
+           
+
+        private void ShowConnectionMessage()
+        {
+            Invoke(new Action(() =>
             {
-                statusLabel = new Label();
-                statusLabel.AutoSize = true;
-                statusLabel.Location = new System.Drawing.Point(20, 20);
-                statusLabel.Text = "Waiting for connection...";
-                this.Controls.Add(statusLabel);
-            }
+                statusLabel.Text = "Connection established with SECS/GEM host. " + client.Connected;
+            }));
 
-            private async void StartListening()
-            {
-                listener = new TcpListener(IPAddress.Loopback, Port);
-                listener.Start();
-                statusLabel.Text = $"Listening on port {Port}...";
-
-                while (true)
-                {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    ShowConnectionMessage(client);
-                }
-            }
-
-            private void ShowConnectionMessage(TcpClient client)
-            {
-                Invoke(new Action(() =>
-                {
-                    statusLabel.Text = "Connection established with SECS/GEM host.";
-                }));
-            }
+           
 
         }
+
+        private async void Reset()
+        {
+
+
+            client = await listener.AcceptTcpClientAsync();
+            ShowConnectionMessage();
+
+        }
+
     }
+}
