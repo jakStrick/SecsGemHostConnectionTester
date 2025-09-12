@@ -1,4 +1,4 @@
-namespace HostConnectionTestor
+namespace SecsGemClient
 {
     internal static class Program
     {
